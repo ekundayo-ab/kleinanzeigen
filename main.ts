@@ -110,14 +110,10 @@ async function scrapeKleinanzeigenAds(): Promise<AdItem[]> {
 
     if (html) {
       const ads = extractAds(html);
-
-      if (ads.length === 0) {
-        console.log(`No ads found on page ${pageNumber}. Stopping.`);
-        hasMorePages = false;
-      } else {
+      if (ads.length) {
         allAds = allAds.concat(ads);
-        pageNumber++;
       }
+      pageNumber++;
     } else {
       console.log(`Failed to fetch page ${pageNumber}. Stopping.`);
       hasMorePages = false;
@@ -197,7 +193,7 @@ async function main() {
 //   `https://www.kleinanzeigen.de/s-autos/muenchen/seite:${pageNumber}/auto/k0c216l6411`;
 // const url = 'https://www.kleinanzeigen.de/s-bayern/hauptplatine/k0l5510'
 
-const url = "https://www.kleinanzeigen.de/s-bayern/l5510";
+const url = "https://www.kleinanzeigen.de/s-muenchen/l6411";
 
 main();
 
