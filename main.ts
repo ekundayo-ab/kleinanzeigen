@@ -198,8 +198,8 @@ async function main() {
 //   `https://www.kleinanzeigen.de/s-autos/muenchen/seite:${pageNumber}/auto/k0c216l6411`;
 // const url = 'https://www.kleinanzeigen.de/s-bayern/hauptplatine/k0l5510'
 
-const url = "https://www.kleinanzeigen.de/s-muenchen/l6411";
+const url = "https://www.kleinanzeigen.de/s-wolfsburg/l3071";
 
-main();
+// main();
 
 // main2();
