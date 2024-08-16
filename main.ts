@@ -1,6 +1,5 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
-import currency from "currency.js";
 import * as fs from "fs";
 
 interface AdItem {
@@ -11,17 +10,6 @@ interface AdItem {
   url: string;
   imageUrl: string;
   priceValue?: number;
-}
-
-const freebies: AdItem[] = [];
-
-function convertToNumber(currencyString: string): number {
-  return currency(currencyString, {
-    symbol: "",
-    decimal: ",",
-    separator: ".",
-    precision: 2,
-  }).value;
 }
 
 async function fetchPage(
@@ -112,7 +100,7 @@ async function scrapeKleinanzeigenAds(): Promise<AdItem[]> {
       const ads = extractAds(html);
       if (ads.length) {
         fs.writeFileSync(
-          `adspage${pageNumber}.json`,
+          `temp/adspage${pageNumber}.json`,
           JSON.stringify(ads, null, 2),
           "utf-8"
         );
@@ -124,71 +112,18 @@ async function scrapeKleinanzeigenAds(): Promise<AdItem[]> {
       hasMorePages = false;
     }
 
-    // Optional: Add a delay to avoid overwhelming the server
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 
   return allAds;
 }
 
-async function main2() {
-  const ads = JSON.parse(fs.readFileSync("ads.json", "utf-8")) as AdItem[];
-  const cleanedAds = ads
-    // .filter((ad) => {
-    //   if (
-    //     ad.title.includes("Zu verschenken") ||
-    //     ad.price.includes("Zu verschenken")
-    //   ) {
-    //     freebies.push(ad);
-    //   }
-
-    //   return !!ad.title && ad.price !== "VB";
-    // })
-    .map((ad) => {
-      const price = convertToNumber(
-        ad.price.replace("€", "").replace("VB", "").trim()
-      );
-
-      ad.price = `${price}`;
-      ad["priceValue"] = price;
-
-      return ad;
-    })
-    .sort((adA, adB) => {
-      if (!adA?.priceValue) {
-        return 0;
-      }
-
-      if (!adB?.priceValue) {
-        return 0;
-      }
-
-      return adA.priceValue - adB.priceValue;
-    });
-
-  // fs.writeFileSync("adscleaned.json", JSON.stringify(cleanedAds, null, "\t"));
-
-  // console.log(freebies.length);
-  // if (freebies.length) {
-  //   console.log(`You have ${freebies.length} freebies`);
-  //   fs.writeFileSync("adsfreebies.json", JSON.stringify(freebies, null, "\t"));
-  // } else {
-  //   fs.writeFileSync("adsfreebies.json", JSON.stringify([], null, "\t"));
-  //   console.log("No freebies");
-  // }
-
-  // console.log(cleanedAds.length);
-}
-
 async function main() {
   const ads = await scrapeKleinanzeigenAds();
-  // console.log(`Total ads scraped: ${ads.length}`);
-
-  // Write results to a JSON file
   fs.writeFileSync("ads.json", JSON.stringify(ads, null, 2), "utf-8");
-  console.log(`Results written to ads.json, you have ${ads.length} freebies`);
-
-  await main2();
+  console.log(
+    `Scraped ads written to ads.json, you have ${ads.length} freebies`
+  );
 }
 
 // const url = `https://www.kleinanzeigen.de/s-seite:${pageNumber}/lagerregal/k0`;
@@ -200,6 +135,4 @@ async function main() {
 
 const url = "https://www.kleinanzeigen.de/s-wolfsburg/l3071";
 
-// main();
-
-// main2();
+main();
