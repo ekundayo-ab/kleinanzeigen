@@ -1,6 +1,7 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
 import * as fs from "fs";
+import path from "path";
 
 interface AdItem {
   title: string;
@@ -10,6 +11,16 @@ interface AdItem {
   url: string;
   imageUrl: string;
   priceValue?: number;
+}
+
+function writeFileSyncWithDir(filePath: string, content: string) {
+  const dirName = path.dirname(filePath);
+
+  if (!fs.existsSync(dirName)) {
+    fs.mkdirSync(dirName, { recursive: true });
+  }
+
+  fs.writeFileSync(filePath, content);
 }
 
 async function fetchPage(
@@ -62,7 +73,7 @@ function extractAds(html: string): AdItem[] {
   return ads;
 }
 
-async function scrapeKleinanzeigenAds(): Promise<AdItem[]> {
+async function scrapeKleinanzeigenAds(url: string): Promise<AdItem[]> {
   let allAds: AdItem[] = [];
   let pageNumber = 1;
   let hasMorePages = true;
@@ -99,11 +110,11 @@ async function scrapeKleinanzeigenAds(): Promise<AdItem[]> {
     if (html) {
       const ads = extractAds(html);
       if (ads.length) {
-        fs.writeFileSync(
-          `temp/adspage${pageNumber}.json`,
-          JSON.stringify(ads, null, 2),
-          "utf-8"
+        writeFileSyncWithDir(
+          `src/temp/adspage${pageNumber}.json`,
+          JSON.stringify(ads, null, 2)
         );
+        console.log(`Found ${ads.length} ad(s) in page ${pageNumber}`);
         allAds = allAds.concat(ads);
       }
       pageNumber++;
@@ -118,21 +129,10 @@ async function scrapeKleinanzeigenAds(): Promise<AdItem[]> {
   return allAds;
 }
 
-async function main() {
-  const ads = await scrapeKleinanzeigenAds();
-  fs.writeFileSync("ads.json", JSON.stringify(ads, null, 2), "utf-8");
+export async function main(url: string) {
+  const ads = await scrapeKleinanzeigenAds(url);
+  fs.writeFileSync("src/ads.json", JSON.stringify(ads, null, 2), "utf-8");
   console.log(
     `Scraped ads written to ads.json, you have ${ads.length} freebies`
   );
 }
-
-// const url = `https://www.kleinanzeigen.de/s-seite:${pageNumber}/lagerregal/k0`;
-// const url = `https://www.kleinanzeigen.de/s-muenchen/seite:${pageNumber}/regal/k0l6411`
-// const url = `https://www.kleinanzeigen.de/s-bayern/seite:${pageNumber}/kellerregal/k0l5510`
-// const getUrl = (pageNumber: number) =>
-//   `https://www.kleinanzeigen.de/s-autos/muenchen/seite:${pageNumber}/auto/k0c216l6411`;
-// const url = 'https://www.kleinanzeigen.de/s-bayern/hauptplatine/k0l5510'
-
-const url = "https://www.kleinanzeigen.de/s-wolfsburg/l3071";
-
-main();
